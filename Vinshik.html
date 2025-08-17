@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VinShik Dashboard</title>
+
+<!-- Bootstrap (for modals/popovers only) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<!-- FullCalendar -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/main.min.css" rel="stylesheet">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --muted:#6b7280;
+    --text:#111827;
+    --brand:#0ea5e9;       /* light-cyan like screenshot */
+    --active-bg:#e0f2fe;   /* active pill bg */
+    --border:#e5e7eb;
+    --shadow:0 4px 10px rgba(0,0,0,.05);
+    --shadow-lg:0 10px 24px rgba(0,0,0,.10);
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box; font-family: 'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif}
+  html,body{height:100%;}
+  body{display:flex; background:var(--bg); color:var(--text); margin:0; overflow:hidden;}
+
+  /* Sidebar */
+  .sidebar{
+    width:250px; background:#fff; border-right:1px solid var(--border);
+    padding:20px 0; display:flex; flex-direction:column;
+  }
+  .logo{font-size:28px; font-weight:800; padding:0 20px 18px;}
+  .logo .vin{color:var(--brand)}
+  .nav{display:flex; flex-direction:column; gap:8px; padding:0 12px;}
+  .nav a{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 12px; color:#4b5563; text-decoration:none;
+    border-radius:12px; transition:.18s ease; font-weight:600;
+  }
+  .nav a .icon{ width:22px; text-align:center; }
+  .nav a:hover{ background:#f3f4f6; }
+  .nav a.active{ background:var(--active-bg); color:#0284c7; }
+
+  /* Main */
+  .main{flex:1; overflow:auto; padding:24px 28px;}
+  .topbar{display:flex; justify-content:flex-end; align-items:center; gap:18px; margin-bottom:10px;}
+  .topbar .bubble{position:relative; width:38px; height:38px; display:grid; place-items:center; color:#6b7280; border-radius:50%; background:#fff; border:1px solid var(--border); transition:.18s}
+  .topbar .bubble:hover{box-shadow:var(--shadow)}
+  .avatar{width:40px; height:40px; border-radius:50%; border:2px solid #e5e7eb}
+
+  .page-title{font-size:28px; font-weight:800; margin:6px 0 6px}
+  .subtitle{color:var(--muted); margin-bottom:16px}
+
+  /* Cards grid (exact spacing as screenshot) */
+  .cards{
+    display:grid; grid-template-columns: repeat(4,minmax(220px,1fr));
+    gap:22px; margin-top:10px;
+  }
+  .card-tile{
+    background:var(--card); border-radius:16px; box-shadow:var(--shadow);
+    padding:18px 18px; display:grid; grid-template-columns:1fr 88px; align-items:center;
+    column-gap:10px; transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .card-tile:hover{ transform: translateY(-4px); box-shadow:var(--shadow-lg); }
+  .kpi h6{font-size:13px; color:#374151; margin:0 0 6px; font-weight:700}
+  .kpi .delta{display:flex; align-items:center; gap:8px; font-size:12px; color:#10b981}
+  .kpi .delta.down{color:#ef4444}
+  .kpi .value{font-weight:800; font-size:26px; margin-top:6px}
+  .mini{height:60px !important; width:100%}
+
+  /* Sections */
+  .section{display:none; animation:fade .18s ease}
+  .section.active{display:block}
+  @keyframes fade{from{opacity:.6; transform:translateY(2px)} to{opacity:1; transform:none}}
+
+  /* Calendar card */
+  .card-block{background:#fff; padding:18px; border-radius:var(--radius); box-shadow:var(--shadow);}
+
+  /* Tables & lists to fit clean theme */
+  .table-card{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .table-card table{margin:0}
+  .badge-pill{border-radius:999px; padding:.35rem .65rem; font-weight:600}
+
+  @media (max-width:1100px){ .cards{grid-template-columns: repeat(2, minmax(220px,1fr));} }
+  @media (max-width:700px){
+    .sidebar{width:78px}
+    .logo{font-size:22px; padding-left:16px}
+    .nav a span.label{display:none}
+    .nav{padding:0 8px}
+  }
+</style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><span class="vin">Vin</span>Shik</div>
+    <nav class="nav">
+      <a class="active" data-target="home"><span class="icon"><i class="fa-solid fa-house"></i></span><span class="label">Home</span></a>
+      <a data-target="calendar"><span class="icon"><i class="fa-solid fa-calendar"></i></span><span class="label">Calendar</span></a>
+      <a data-target="map"><span class="icon"><i class="fa-solid fa-map-location-dot"></i></span><span class="label">Map</span></a>
+      <a data-target="clients"><span class="icon"><i class="fa-solid fa-user-group"></i></span><span class="label">Clients</span></a>
+      <a data-target="jobs"><span class="icon"><i class="fa-solid fa-briefcase"></i></span><span class="label">Jobs</span></a>
+      <a data-target="quotes"><span class="icon"><i class="fa-solid fa-file-invoice"></i></span><span class="label">Quotes</span></a>
+      <a data-target="services"><span class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></span><span class="label">My Services</span></a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="bubble" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="No new messages"><i class="fa-regular fa-envelope"></i></div>
+      <div class="bubble" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="Settings open soon"><i class="fa-solid fa-gear"></i></div>
+      <div class="dropdown">
+        <img class="avatar dropdown-toggle" data-bs-toggle="dropdown" src="https://i.pravatar.cc/80" alt="user">
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><h6 class="dropdown-header">Julie</h6></li>
+          <li><a class="dropdown-item" href="#">Profile</a></li>
+          <li><a class="dropdown-item" href="#">Settings</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <section id="home" class="section active">
+      <div class="page-title">Welcome back, Julie 👋</div>
+      <div class="subtitle">Here’s what you need to focus on today</div>
+
+      <div class="cards">
+        <!-- Active Jobs -->
+        <div class="card-tile" data-jump="jobs">
+          <div class="kpi">
+            <h6>Active Jobs</h6>
+            <div class="delta"><i class="fa-solid fa-arrow-trend-up"></i> +12.2%</div>
+            <div class="value">43.7k</div>
+          </div>
+          <canvas id="spark1" class="mini"></canvas>
+        </div>
+        <!-- In Progress -->
+        <div class="card-tile" data-jump="jobs">
+          <div class="kpi">
+            <h6>Jobs In Progress</h6>
+            <div class="delta down"><i class="fa-solid fa-arrow-trend-down"></i> -31.1%</div>
+            <div class="value">92.3k</div>
+          </div>
+          <canvas id="spark2" class="mini"></canvas>
+        </div>
+        <!-- Finished -->
+        <div class="card-tile" data-jump="jobs">
+          <div class="kpi">
+            <h6>Finished Jobs</h6>
+            <div class="delta"><i class="fa-solid fa-arrow-trend-up"></i> +3.3%</div>
+            <div class="value">66.3k</div>
+          </div>
+          <canvas id="spark3" class="mini"></canvas>
+        </div>
+        <!-- New Leads -->
+        <div class="card-tile" data-jump="clients">
+          <div class="kpi">
+            <h6>New Leads</h6>
+            <div class="delta"><i class="fa-solid fa-arrow-trend-up"></i> +31.1%</div>
+            <div class="value">92.3k</div>
+          </div>
+          <canvas id="spark4" class="mini"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section id="calendar" class="section">
+      <div class="card-block">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="m-0">Calendar</h5>
+          <div>
+            <button id="btn-today" class="btn btn-sm btn-outline-secondary">Today</button>
+            <button id="btn-add" class="btn btn-sm btn-primary"><i class="fa-solid fa-plus"></i> Add Event</button>
+          </div>
+        </div>
+        <div id="calendarEl"></div>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section id="map" class="section">
+      <div class="card-block">
+        <h5 class="mb-3">Map</h5>
+        <iframe
+          src="https://maps.google.com/maps?q=New%20Delhi&t=&z=12&ie=UTF8&iwloc=&output=embed"
+          width="100%" height="420" style="border:0; border-radius:12px"></iframe>
+      </div>
+    </section>
+
+    <!-- CLIENTS -->
+    <section id="clients" class="section">
+      <div class="table-card">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Name</th><th>Email</th><th>Status</th><th>Last Activity</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Rahul Sharma</td><td>rahul@acme.com</td><td><span class="badge bg-success badge-pill">Active</span></td><td>Today</td></tr>
+            <tr><td>Priya Verma</td><td>priya@nova.io</td><td><span class="badge bg-warning text-dark badge-pill">Pending</span></td><td>Yesterday</td></tr>
+            <tr><td>Amit Singh</td><td>amit@pixel.in</td><td><span class="badge bg-secondary badge-pill">Cold</span></td><td>3 days ago</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- JOBS -->
+    <section id="jobs" class="section">
+      <div class="table-card">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+          <tr><th>Job</th><th>Client</th><th>Status</th><th>Due</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Website Revamp</td><td>Rahul Sharma</td><td><span class="badge bg-info text-dark badge-pill">In Progress</span></td><td>Aug 26</td></tr>
+            <tr><td>Android App</td><td>Priya Verma</td><td><span class="badge bg-success badge-pill">Active</span></td><td>Aug 30</td></tr>
+            <tr><td>Logo Sprint</td><td>Amit Singh</td><td><span class="badge bg-primary badge-pill">Finished</span></td><td>Aug 16</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- QUOTES -->
+    <section id="quotes" class="section">
+      <div class="card-block">
+        <h5 class="mb-3">Quotes</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 border rounded-4" style="background:#fafafa">
+              <div class="fw-bold">#Q-2031 — Website Revamp</div>
+              <div class="small text-muted">Rahul Sharma</div>
+              <div class="mt-2"><span class="badge bg-success">Approved</span> <span class="ms-2 fw-semibold">₹ 1,20,000</span></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 border rounded-4" style="background:#fafafa">
+              <div class="fw-bold">#Q-2032 — Android App</div>
+              <div class="small text-muted">Priya Verma</div>
+              <div class="mt-2"><span class="badge bg-warning text-dark">Pending</span> <span class="ms-2 fw-semibold">₹ 2,40,000</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="section">
+      <div class="card-block">
+        <h5 class="mb-3">My Services</h5>
+        <ul class="list-unstyled m-0">
+          <li class="py-2"><i class="fa-solid fa-code text-primary me-2"></i> Web Development</li>
+          <li class="py-2"><i class="fa-solid fa-mobile-screen-button text-primary me-2"></i> Mobile Apps</li>
+          <li class="py-2"><i class="fa-solid fa-chart-line text-primary me-2"></i> SEO & Analytics</li>
+          <li class="py-2"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i> Cloud Deployments</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Event Modal -->
+  <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="addEventForm" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Event</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input name="title" class="form-control" required>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Start</label>
+              <input name="start" type="datetime-local" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">End</label>
+              <input name="end" type="datetime-local" class="form-control">
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="Optional"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save Event</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Event Modal -->
+  <div class="modal fade" id="viewEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewTitle">Event</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="small text-muted" id="viewTime"></div>
+          <div class="mt-2" id="viewNotes"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="deleteEventBtn" type="button" class="btn btn-outline-danger">Delete</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/main.min.js"></script>
+
+<script>
+  // ---------- Sidebar Navigation (show/hide sections) ----------
+  const navLinks = document.querySelectorAll('.nav a');
+  const sections = document.querySelectorAll('.section');
+  function showSection(id){
+    sections.forEach(s => s.classList.toggle('active', s.id === id));
+    navLinks.forEach(a => a.classList.toggle('active', a.dataset.target === id));
+  }
+  navLinks.forEach(a => a.addEventListener('click', e => { e.preventDefault(); showSection(a.dataset.target); }));
+
+  // Cards jump to related sections
+  document.querySelectorAll('.card-tile[data-jump]').forEach(c =>
+    c.addEventListener('click', () => showSection(c.dataset.jump))
+  );
+
+  // ---------- Topbar popovers ----------
+  [...document.querySelectorAll('[data-bs-toggle="popover"]')].forEach(el => new bootstrap.Popover(el));
+
+  // ---------- Mini Charts (sparklines) ----------
+  const sparkCfg = (color) => ({
+    type:'bar',
+    data:{labels:['','','','','',''], datasets:[{data:[12,18,11,22,17,26], backgroundColor:color, borderRadius:6}]},
+    options:{plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}}, responsive:true, maintainAspectRatio:false}
+  });
+  new Chart(document.getElementById('spark1'), sparkCfg('#3B82F6')); // blue
+  new Chart(document.getElementById('spark2'), sparkCfg('#F59E0B')); // amber
+  new Chart(document.getElementById('spark3'), sparkCfg('#10B981')); // green
+  new Chart(document.getElementById('spark4'), sparkCfg('#8B5CF6')); // purple
+
+  // ---------- Calendar (FullCalendar) ----------
+  let calendar, selectedEventId=null;
+  const calendarEl = document.getElementById('calendarEl');
+
+  const initialEvents = [
+    { id:'e1', title:'Client Meeting', start:new Date().toISOString().slice(0,10)+'T10:00:00', extendedProps:{notes:'Kickoff call'} },
+    { id:'e2', title:'Project Deadline', start:new Date(Date.now()+3*86400000).toISOString().slice(0,10), extendedProps:{notes:'Handover to client'} },
+    { id:'e3', title:'Team Lunch', start:new Date(Date.now()+5*86400000).toISOString().slice(0,10)+'T13:00:00', extendedProps:{notes:'Café Milano'} }
+  ];
+
+  function renderCalendar(){
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView:'dayGridMonth',
+      height:'auto',
+      headerToolbar:{ left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,timeGridDay' },
+      selectable:true,
+      select: (info) => { // open add-modal with range prefilled
+        const start = info.startStr.length>10 ? info.startStr : info.startStr+'T09:00';
+        const end   = info.endStr && info.endStr!==info.startStr ? info.endStr : '';
+        const form = document.getElementById('addEventForm');
+        form.title.value='';
+        form.start.value = start.slice(0,16);
+        form.end.value   = end ? end.slice(0,16) : '';
+        form.notes.value='';
+        bootstrap.Modal.getOrCreateInstance('#addEventModal').show();
+      },
+      eventClick: (info) => {
+        selectedEventId = info.event.id;
+        document.getElementById('viewTitle').textContent = info.event.title;
+        const start = info.event.start ? info.event.start.toLocaleString() : '';
+        const end = info.event.end ? ' — '+info.event.end.toLocaleString() : '';
+        document.getElementById('viewTime').textContent = start + end;
+        document.getElementById('viewNotes').textContent = info.event.extendedProps?.notes || '—';
+        bootstrap.Modal.getOrCreateInstance('#viewEventModal').show();
+      },
+      events: initialEvents
+    });
+    calendar.render();
+  }
+
+  renderCalendar();
+
+  // Toolbar helpers
+  document.getElementById('btn-today').addEventListener('click', ()=>calendar.today());
+  document.getElementById('btn-add').addEventListener('click', ()=>{
+    const now = new Date();
+    const form = document.getElementById('addEventForm');
+    form.title.value='';
+    form.start.value = new Date(now.getTime()+60*60*1000).toISOString().slice(0,16);
+    form.end.value   = '';
+    form.notes.value='';
+    bootstrap.Modal.getOrCreateInstance('#addEventModal').show();
+  });
+
+  // Add event form
+  document.getElementById('addEventForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const evt = {
+      id: 'evt_'+Math.random().toString(36).slice(2,8),
+      title: fd.get('title'),
+      start: fd.get('start'),
+      end: fd.get('end') || null,
+      extendedProps:{notes:fd.get('notes')}
+    };
+    calendar.addEvent(evt);
+    bootstrap.Modal.getOrCreateInstance('#addEventModal').hide();
+  });
+
+  // Delete event
+  document.getElementById('deleteEventBtn').addEventListener('click', ()=>{
+    if(!selectedEventId) return;
+    const ev = calendar.getEventById(selectedEventId);
+    if(ev) ev.remove();
+    bootstrap.Modal.getOrCreateInstance('#viewEventModal').hide();
+  });
+
+</script>
+</body>
+</html>
