@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VinShik - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6bff;
+            --sidebar-bg: #2c3e50;
+            --sidebar-text: #ecf0f1;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --positive-color: #2ecc71;
+            --negative-color: #e74c3c;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-nav ul {
+            list-style: none;
+        }
+
+        .main-nav li {
+            margin-bottom: 15px;
+        }
+
+        .main-nav a {
+            color: var(--sidebar-text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .main-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main-nav a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-nav li.active a {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-header h3 {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .stat-change.positive {
+            color: var(--positive-color);
+        }
+
+        .stat-change.negative {
+            color: var(--negative-color);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+            
+            .main-nav ul {
+                display: flex;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            
+            .main-nav li {
+                margin-right: 15px;
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="logo">VinShik</div>
+            <nav class="main-nav">
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                    <li><a href="#"><i class="fas fa-map-marker-alt"></i> Map</a></li>
+                    <li><a href="#"><i class="fas fa-users"></i> Clients</a></li>
+                    <li><a href="#"><i class="fas fa-briefcase"></i> Jobs</a></li>
+                    <li><a href="#"><i class="fas fa-file-invoice-dollar"></i> Quotes</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> My Services</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <h1>Welcome back, Julie</h1>
+                <p>Here's what you need to focus on today</p>
+            </header>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3>Active Jobs</h3>
+                        <span class="stat-change positive">+22%</span>
+                    </div>
+                    <div class="stat-value">43.7k</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3>Jobs in Progress</h3>
+                        <span class="stat-change negative">-31%</span>
+                    </div>
+                    <div class="stat-value">92.3k</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3>Finished Jobs</h3>
+                        <span class="stat-change positive">+3.3%</span>
+                    </div>
+                    <div class="stat-value">66.3k</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3>New Leads</h3>
+                        <span class="stat-change negative">-31%</span>
+                    </div>
+                    <div class="stat-value">92.3k</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add active class to clicked nav items
+            const navItems = document.querySelectorAll('.main-nav li');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Animate stats on page load
+            const statValues = document.querySelectorAll('.stat-value');
+            statValues.forEach(value => {
+                const originalText = value.textContent;
+                value.textContent = '0';
+                
+                let counter = 0;
+                const target = parseFloat(originalText.replace('k', '')) * 1000;
+                const increment = target / 30;
+                
+                const updateCounter = () => {
+                    if (counter < target) {
+                        counter += increment;
+                        value.textContent = Math.floor(counter / 1000) + '.' + 
+                                        Math.floor((counter % 1000) / 100) + 'k';
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        value.textContent = originalText;
+                    }
+                };
+                
+                setTimeout(updateCounter, 300);
+            });
+
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.stat-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
